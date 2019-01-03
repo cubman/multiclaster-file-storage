@@ -25,6 +25,9 @@ public class Cluster {
             case "RM":
                 removeCommand();
                 break;
+            case "RP":
+                replaceCommand();
+                break;
         }
     }
 
@@ -49,7 +52,7 @@ public class Cluster {
             directory.mkdir();
         }
 
-        saveFile("files/" + fileName + "_" + part + ".txt", resString.toString());
+        saveFile(filePath(fileName, part), resString.toString());
 
         out.write("OK." + fileName + "_" + part + " file was saved\r\nEND\r\n");
         out.flush();
@@ -69,9 +72,7 @@ public class Cluster {
         String fileName = in.readLine();
         String part = in.readLine();
 
-        String file = "files/" + fileName + "_" + part + ".txt";
-
-        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        try(BufferedReader reader = new BufferedReader(new FileReader(filePath(fileName, part)))) {
             while (true) {
                 String textWords = reader.readLine();
 
@@ -87,17 +88,43 @@ public class Cluster {
         out.flush();
     }
 
+    String filePath(String fileName, String part) {
+        return "files/" + fileName + "_" + part + ".txt";
+    }
+
     private void removeCommand() throws IOException {
         String fileName = in.readLine();
         String part = in.readLine();
 
-        File file = new File("files/" + fileName + "_" + part + ".txt");
+        File file = new File(filePath(fileName, part));
 
         if (file.delete()) {
             out.write(fileName + "_" + part + " был удален\r\nEND\r\n");
         } else {
             out.write(fileName + "_" + part + " не был удален\r\nEND\r\n");
         }
+        out.flush();
+    }
+
+    private void replaceCommand() throws IOException {
+        StringBuilder resString = new StringBuilder();
+
+        String fileName = in.readLine();
+        String part = in.readLine();
+
+        while (true) {
+            String textWords = in.readLine();
+
+            if ("END".equals(textWords)) {
+                System.out.println(resString);
+                break;
+            }
+            resString.append(textWords);
+        }
+
+        saveFile(filePath(fileName, part), resString.toString());
+
+        out.write("OK." + fileName + " был заменен успешно\r\nEND\r\n");
         out.flush();
     }
 }

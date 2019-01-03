@@ -51,6 +51,10 @@ public class ClientExecutor implements IExecutor {
                 case "DELETE":
                     outText = deleteFile();
                     break;
+
+                case "REPLACE":
+                    outText = replaceFragment();
+                    break;
                 default:
                     throw new IllegalArgumentException(action + " unsupported");
             }
@@ -87,11 +91,11 @@ public class ClientExecutor implements IExecutor {
     }
 
     private String saveAction() throws IOException, InterruptedException {
-        StringBuilder command = new StringBuilder();
-
         String fileName = in.readLine();
 
         Server.dataStorage.put(fileName, new CopyOnWriteArrayList<>());
+
+        StringBuilder command = new StringBuilder();
 
         while (true) {
             String string = in.readLine();
@@ -157,7 +161,7 @@ public class ClientExecutor implements IExecutor {
                 break;
             }
 
-            TimeUnit.SECONDS.sleep(2);
+            TimeUnit.SECONDS.sleep(1);
         }
 
         StringBuilder result = new StringBuilder();
@@ -198,5 +202,64 @@ public class ClientExecutor implements IExecutor {
         Server.dataStorage.remove(fileName);
 
         return result;
+    }
+
+    private String replaceFragment() throws IOException, InterruptedException {
+        String fileName = in.readLine();
+
+        if (!fileExists(fileName)) {
+            return fileName + " не существует\r\n" + Server.END;
+        }
+
+        String part = in.readLine();
+        Integer filePart = Integer.parseInt(part);
+
+        DataInformation dataInformation = findDataInformationByPart(fileName, filePart);
+
+        if (dataInformation == null) {
+            return fileName + "_" + filePart + " не существует\r\n" + Server.END;
+        }
+
+        StringBuilder command = new StringBuilder();
+
+        while (true) {
+            String string = in.readLine();
+
+            if ("END".equals(string)) {
+                break;
+            }
+
+            command.append(string).append("\t");
+        }
+
+        String commandString = command.toString();
+
+        if (commandString.length() > BUFFER_SIZE) {
+            return "Длина нового текста превышает длину в " + BUFFER_SIZE + " символа\r\n" + Server.END;
+        }
+
+        List<Pair<Integer, Task>> savedPlaces = new CopyOnWriteArrayList<>();
+
+        Integer clusterId = dataInformation.getClusterId();
+        Task task = new Task(String.format("RP\r\n%s\r\n%d\r\n%s\r\nEND\r\n",
+                fileName, dataInformation.getPart(), commandString));
+
+        Server.tasks.get(clusterId).add(task);
+
+        savedPlaces.add(new Pair<>(clusterId, task));
+
+        return getResult(savedPlaces);
+    }
+
+    private DataInformation findDataInformationByPart(String fileName, Integer part) {
+        List<DataInformation> information = Server.dataStorage.get(fileName);
+
+        for (DataInformation dataInformation : information) {
+            if (dataInformation.getPart() == part) {
+                return dataInformation;
+            }
+        }
+
+        return null;
     }
 }
