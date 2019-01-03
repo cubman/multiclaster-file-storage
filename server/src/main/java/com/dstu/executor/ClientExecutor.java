@@ -27,7 +27,7 @@ public class ClientExecutor implements IExecutor {
     public void execute() {
         try {
             String action = in.readLine();
-            String outText = "";
+            String outText;
 
             switch (action) {
                 case "SAVE":
@@ -42,7 +42,7 @@ public class ClientExecutor implements IExecutor {
                 case "EXISTS":
                     String fileName = in.readLine();
 
-                    outText = Server.dataStorage.get(fileName) != null
+                    outText = fileExists(fileName)
                             ? "Существует\r\nEND\r\n" : "Не существует\n" +
                             "END\n";
 
@@ -136,9 +136,7 @@ public class ClientExecutor implements IExecutor {
         if (integers.size() == 0) {
             System.out.println("Не найдено ни одного кластера");
         }
-        int rand = Math.abs(random.nextInt()) % integers.size();
-
-        int count = rand;
+        int count = Math.abs(random.nextInt()) % integers.size();
 
         for (Integer integer : integers) {
             if (count == 0) {
@@ -212,7 +210,7 @@ public class ClientExecutor implements IExecutor {
         }
 
         String part = in.readLine();
-        Integer filePart = Integer.parseInt(part);
+        int filePart = Integer.parseInt(part);
 
         DataInformation dataInformation = findDataInformationByPart(fileName, filePart);
 
