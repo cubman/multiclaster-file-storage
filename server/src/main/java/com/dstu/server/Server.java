@@ -17,6 +17,8 @@ public class Server {
     private static final int MAX_THREAD_COUNT = 10;
     private static final int PORT = 8080;
 
+    public static final String END = "END\r\n";
+
     ServerSocket serverSocket;
     public static final Map<Integer, List<Task>> tasks = new ConcurrentHashMap<>();
 

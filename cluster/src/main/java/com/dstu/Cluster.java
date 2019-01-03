@@ -15,10 +15,14 @@ public class Cluster {
     public void execute() throws IOException {
         String serverWord = in.readLine();
 
-        if ("SV".equals(serverWord)) {
-            saveCommand();
+        switch (serverWord) {
+            case "SV":
+                saveCommand();
+                break;
+            case "GT":
+                getCommand();
+                break;
         }
-        ;
     }
 
     private void saveCommand() throws IOException {
@@ -34,7 +38,7 @@ public class Cluster {
                 System.out.println(resString);
                 break;
             }
-            resString.append(textWords.replace('\t', '\n'));
+            resString.append(textWords);
         }
 
         File directory = new File("files");
@@ -54,5 +58,27 @@ public class Cluster {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    private void getCommand() throws IOException {
+        StringBuilder resString = new StringBuilder();
+
+        String fileName = in.readLine();
+        String part = in.readLine();
+
+        String file = "files/" + fileName + "_" + part + ".txt";
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        while (true) {
+            String textWords = reader.readLine();
+
+            if (textWords == null) {
+                System.out.println(resString);
+                break;
+            }
+            resString.append(textWords);
+        }
+
+        out.write(resString + "\r\nEND\r\n");
+        out.flush();
     }
 }

@@ -34,13 +34,17 @@ public class ClientExecutor implements IExecutor {
                     outText = saveAction();
 
                     break;
+                case "GET":
+                    outText = getFile();
+
+                    break;
+
                 case "EXISTS":
                     String fileName = in.readLine();
 
-                    out.write(Server.dataStorage.get(fileName) != null
+                    outText = Server.dataStorage.get(fileName) != null
                             ? "Существует\r\nEND\r\n" : "Не существует\n" +
-                            "END\n");
-                    out.flush();
+                            "END\n";
 
                     break;
                 default:
@@ -55,12 +59,56 @@ public class ClientExecutor implements IExecutor {
         }
     }
 
+    private String getFile() throws IOException, InterruptedException {
+        String fileName = in.readLine();
+
+        List<DataInformation> information = Server.dataStorage.get(fileName);
+
+        if (information == null) {
+            return fileName + " не существует\r\n" + Server.END;
+        }
+
+        List<Pair<Integer, Task>> savedPlaces = new CopyOnWriteArrayList<>();
+
+        for (DataInformation dataInformation : information) {
+            Integer clusterId = dataInformation.getClusterId();
+            Task task = new Task(String.format("GT\r\n%s\r\n%d\r\nEND\r\n",
+                    fileName, dataInformation.getPart()));
+
+            Server.tasks.get(clusterId).
+                    add(task);
+
+            savedPlaces.add(new Pair<>(clusterId, task));
+        }
+
+        while (true) {
+            long count = savedPlaces.stream().filter(integerTaskPair -> integerTaskPair.getValue().getSolution() == null).count();
+            if (count == 0) {
+                break;
+            }
+
+            TimeUnit.SECONDS.sleep(2);
+        }
+
+        StringBuilder result = new StringBuilder();
+
+        for (Pair<Integer, Task> taskPair : savedPlaces) {
+            result.append(taskPair.getValue().getSolution());
+
+            Server.tasks.get(taskPair.getKey()).remove(taskPair.getValue());
+        }
+
+        result.append(Server.END);
+
+        return result.toString();
+    }
+
     private String saveAction() throws IOException, InterruptedException {
         StringBuilder command = new StringBuilder();
 
         String fileName = in.readLine();
 
-        Server.dataStorage.putIfAbsent(fileName, new CopyOnWriteArrayList<>());
+        Server.dataStorage.put(fileName, new CopyOnWriteArrayList<>());
 
         while (true) {
             String string = in.readLine();
@@ -69,7 +117,7 @@ public class ClientExecutor implements IExecutor {
                 break;
             }
 
-            command.append(string + "\t");
+            command.append(string).append("\t");
         }
 
         List<Pair<Integer, Task>> savedPlaces = new CopyOnWriteArrayList<>();
@@ -81,12 +129,11 @@ public class ClientExecutor implements IExecutor {
             }
 
             Integer clusterId = getRandomClusterId();
-            List<Task> taskList = Server.tasks.get(clusterId);
             Task task = new Task(String.format("SV\r\n%s\r\n%d\r\n%s\r\nEND\r\n",
                     fileName, i,
-                    commandToSplit.substring(i * BUFFER_SIZE, Math.min (command.length(), i + 1) * BUFFER_SIZE)));
+                    commandToSplit.substring(i * BUFFER_SIZE, Math.min(command.length(), (i + 1) * BUFFER_SIZE))));
 
-            taskList.add(task);
+            Server.tasks.get(clusterId).add(task);
 
             savedPlaces.add(new Pair<>(clusterId, task));
 
@@ -110,7 +157,7 @@ public class ClientExecutor implements IExecutor {
             Server.tasks.get(taskPair.getKey()).remove(taskPair.getValue());
         }
 
-        result.append("END\r\n");
+        result.append(Server.END);
 
         return result.toString();
     }
@@ -123,12 +170,15 @@ public class ClientExecutor implements IExecutor {
         }
         int rand = Math.abs(random.nextInt()) % integers.size();
 
-        Integer result = null;
+        int count = rand;
 
-        for (int i = 0; i <= rand; ++i) {
-            result = integers.iterator().next();
+        for (Integer integer : integers) {
+            if (count == 0) {
+                return integer;
+            }
+            --count;
         }
 
-        return result;
+        throw new IndexOutOfBoundsException("Кластер не был найден");
     }
 }

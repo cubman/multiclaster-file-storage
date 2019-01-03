@@ -13,7 +13,7 @@ public class ClientSave {
             ) {
                 out.write("CLIENT\r\n");
                 out.flush();
-                out.write("SAVE\r\nHW2\r\nhello\nworld\r\nEND\r\n");
+                out.write("SAVE\r\nHW2\r\nhello\nworld. I am glad\n\nto see you\nEND\r\n");
                 out.flush();
 
                 StringBuilder resString = new StringBuilder();

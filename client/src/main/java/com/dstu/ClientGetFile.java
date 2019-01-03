@@ -3,7 +3,7 @@ package com.dstu;
 import java.io.*;
 import java.net.Socket;
 
-public class ClientFileExists {
+public class ClientGetFile {
     public static void main(String[] args) {
         int cnt = 0;
         while (true) {
@@ -13,7 +13,7 @@ public class ClientFileExists {
             ) {
                 out.write("CLIENT\r\n");
                 out.flush();
-                out.write("EXISTS\r\nHW2\r\nEND\r\n");
+                out.write("GET\r\nHW2\r\nEND\r\n");
                 out.flush();
 
                 StringBuilder resString = new StringBuilder();
@@ -31,7 +31,7 @@ public class ClientFileExists {
                         return;
                     }
 
-                    resString.append(serverWord);
+                    resString.append(serverWord.replace('\t', '\n'));
                 }
 
             } catch (IOException e) {
