@@ -22,6 +22,9 @@ public class Cluster {
             case "GT":
                 getCommand();
                 break;
+            case "RM":
+                removeCommand();
+                break;
         }
     }
 
@@ -67,18 +70,34 @@ public class Cluster {
         String part = in.readLine();
 
         String file = "files/" + fileName + "_" + part + ".txt";
-        BufferedReader reader = new BufferedReader(new FileReader(file));
-        while (true) {
-            String textWords = reader.readLine();
 
-            if (textWords == null) {
-                System.out.println(resString);
-                break;
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            while (true) {
+                String textWords = reader.readLine();
+
+                if (textWords == null) {
+                    System.out.println(resString);
+                    break;
+                }
+                resString.append(textWords);
             }
-            resString.append(textWords);
         }
 
         out.write(resString + "\r\nEND\r\n");
+        out.flush();
+    }
+
+    private void removeCommand() throws IOException {
+        String fileName = in.readLine();
+        String part = in.readLine();
+
+        File file = new File("files/" + fileName + "_" + part + ".txt");
+
+        if (file.delete()) {
+            out.write(fileName + "_" + part + " был удален\r\nEND\r\n");
+        } else {
+            out.write(fileName + "_" + part + " не был удален\r\nEND\r\n");
+        }
         out.flush();
     }
 }

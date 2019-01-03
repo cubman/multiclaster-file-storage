@@ -47,6 +47,10 @@ public class ClientExecutor implements IExecutor {
                             "END\n";
 
                     break;
+
+                case "DELETE":
+                    outText = deleteFile();
+                    break;
                 default:
                     throw new IllegalArgumentException(action + " unsupported");
             }
@@ -62,15 +66,13 @@ public class ClientExecutor implements IExecutor {
     private String getFile() throws IOException, InterruptedException {
         String fileName = in.readLine();
 
-        List<DataInformation> information = Server.dataStorage.get(fileName);
-
-        if (information == null) {
+        if (!fileExists(fileName)) {
             return fileName + " не существует\r\n" + Server.END;
         }
 
         List<Pair<Integer, Task>> savedPlaces = new CopyOnWriteArrayList<>();
 
-        for (DataInformation dataInformation : information) {
+        for (DataInformation dataInformation : Server.dataStorage.get(fileName)) {
             Integer clusterId = dataInformation.getClusterId();
             Task task = new Task(String.format("GT\r\n%s\r\n%d\r\nEND\r\n",
                     fileName, dataInformation.getPart()));
@@ -81,26 +83,7 @@ public class ClientExecutor implements IExecutor {
             savedPlaces.add(new Pair<>(clusterId, task));
         }
 
-        while (true) {
-            long count = savedPlaces.stream().filter(integerTaskPair -> integerTaskPair.getValue().getSolution() == null).count();
-            if (count == 0) {
-                break;
-            }
-
-            TimeUnit.SECONDS.sleep(2);
-        }
-
-        StringBuilder result = new StringBuilder();
-
-        for (Pair<Integer, Task> taskPair : savedPlaces) {
-            result.append(taskPair.getValue().getSolution());
-
-            Server.tasks.get(taskPair.getKey()).remove(taskPair.getValue());
-        }
-
-        result.append(Server.END);
-
-        return result.toString();
+        return getResult(savedPlaces);
     }
 
     private String saveAction() throws IOException, InterruptedException {
@@ -140,6 +123,34 @@ public class ClientExecutor implements IExecutor {
             Server.dataStorage.get(fileName).add(new DataInformation(clusterId, i));
         }
 
+        return getResult(savedPlaces);
+    }
+
+    private Integer getRandomClusterId() {
+        Set<Integer> integers = Server.tasks.keySet();
+
+        if (integers.size() == 0) {
+            System.out.println("Не найдено ни одного кластера");
+        }
+        int rand = Math.abs(random.nextInt()) % integers.size();
+
+        int count = rand;
+
+        for (Integer integer : integers) {
+            if (count == 0) {
+                return integer;
+            }
+            --count;
+        }
+
+        throw new IndexOutOfBoundsException("Кластер не был найден");
+    }
+
+    private boolean fileExists(String fileName) {
+        return Server.dataStorage.get(fileName) != null;
+    }
+
+    private String getResult(List<Pair<Integer, Task>> savedPlaces) throws InterruptedException {
         while (true) {
             long count = savedPlaces.stream().filter(integerTaskPair -> integerTaskPair.getValue().getSolution() == null).count();
             if (count == 0) {
@@ -162,23 +173,30 @@ public class ClientExecutor implements IExecutor {
         return result.toString();
     }
 
-    private Integer getRandomClusterId() {
-        Set<Integer> integers = Server.tasks.keySet();
+    private String deleteFile() throws IOException, InterruptedException {
+        String fileName = in.readLine();
 
-        if (integers.size() == 0) {
-            System.out.println("Не найдено ни одного кластера");
-        }
-        int rand = Math.abs(random.nextInt()) % integers.size();
-
-        int count = rand;
-
-        for (Integer integer : integers) {
-            if (count == 0) {
-                return integer;
-            }
-            --count;
+        if (!fileExists(fileName)) {
+            return fileName + " не существует\r\n" + Server.END;
         }
 
-        throw new IndexOutOfBoundsException("Кластер не был найден");
+        List<Pair<Integer, Task>> savedPlaces = new CopyOnWriteArrayList<>();
+
+        for (DataInformation dataInformation : Server.dataStorage.get(fileName)) {
+            Integer clusterId = dataInformation.getClusterId();
+            Task task = new Task(String.format("RM\r\n%s\r\n%d\r\nEND\r\n",
+                    fileName, dataInformation.getPart()));
+
+            Server.tasks.get(clusterId).
+                    add(task);
+
+            savedPlaces.add(new Pair<>(clusterId, task));
+        }
+
+        String result = getResult(savedPlaces);
+
+        Server.dataStorage.remove(fileName);
+
+        return result;
     }
 }
