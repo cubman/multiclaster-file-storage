@@ -11,9 +11,9 @@ public class ClientGetFile {
                  BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                  BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             ) {
-                out.write("CLIENT\r\n");
+                out.write("CLIENT GET FILE\r\n");
                 out.flush();
-                out.write("GET\r\nHW2\r\nEND\r\n");
+                out.write("GET\r\nHW\r\nEND\r\n");
                 out.flush();
 
                 StringBuilder resString = new StringBuilder();
@@ -31,7 +31,7 @@ public class ClientGetFile {
                         return;
                     }
 
-                    resString.append(serverWord.replace('\t', '\n'));
+                    resString.append(serverWord).append('\n');
                 }
 
             } catch (IOException e) {

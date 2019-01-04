@@ -72,7 +72,7 @@ public class Cluster {
         String fileName = in.readLine();
         String part = in.readLine();
 
-        try(BufferedReader reader = new BufferedReader(new FileReader(filePath(fileName, part)))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath(fileName, part)))) {
             while (true) {
                 String textWords = reader.readLine();
 
@@ -88,7 +88,7 @@ public class Cluster {
         out.flush();
     }
 
-    String filePath(String fileName, String part) {
+    private String filePath(String fileName, String part) {
         return "files/" + fileName + "_" + part + ".txt";
     }
 
@@ -99,9 +99,9 @@ public class Cluster {
         File file = new File(filePath(fileName, part));
 
         if (file.delete()) {
-            out.write(fileName + "_" + part + " был удален\r\nEND\r\n");
+            out.write(fileName + "_" + part + " was removed\r\nEND\r\n");
         } else {
-            out.write(fileName + "_" + part + " не был удален\r\nEND\r\n");
+            out.write(fileName + "_" + part + " was not removed\r\nEND\r\n");
         }
         out.flush();
     }
@@ -124,7 +124,7 @@ public class Cluster {
 
         saveFile(filePath(fileName, part), resString.toString());
 
-        out.write("OK." + fileName + " был заменен успешно\r\nEND\r\n");
+        out.write("OK." + fileName + " was replaced\r\nEND\r\n");
         out.flush();
     }
 }

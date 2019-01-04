@@ -11,9 +11,9 @@ public class ClientReplaceFile {
                  BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                  BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             ) {
-                out.write("CLIENT\r\n");
+                out.write("CLIENT REPLACE\r\n");
                 out.flush();
-                out.write("REPLACE\r\nHW2\r\n1\r\nqq\r\nEND\r\n");
+                out.write("REPLACE\r\nHW\r\n5\r\nqq\r\nEND\r\n");
                 out.flush();
 
                 StringBuilder resString = new StringBuilder();

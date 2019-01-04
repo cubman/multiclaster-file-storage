@@ -42,9 +42,9 @@ public class ClientExecutor implements IExecutor {
                 case "EXISTS":
                     String fileName = in.readLine();
 
-                    outText = fileExists(fileName)
-                            ? "Существует\r\nEND\r\n" : "Не существует\n" +
-                            "END\n";
+                    outText = fileName + (fileExists(fileName)
+                            ? " существует\r\nEND\r\n" : " не существует\n" +
+                            "END\n");
 
                     break;
 
@@ -87,11 +87,18 @@ public class ClientExecutor implements IExecutor {
             savedPlaces.add(new Pair<>(clusterId, task));
         }
 
-        return getResult(savedPlaces);
+        String result = getResult(savedPlaces);
+        return result.substring(0, result.length() - Server.END.length())
+                .replace("\r\n", "")
+                .replace("\t", "\n")+ "\r\n" + Server.END;
     }
 
     private String saveAction() throws IOException, InterruptedException {
         String fileName = in.readLine();
+
+        if (fileExists(fileName)) {
+            return "Файл существует, чтобы сохранить, надо удалить!\r\n" + Server.END;
+        }
 
         Server.dataStorage.put(fileName, new CopyOnWriteArrayList<>());
 

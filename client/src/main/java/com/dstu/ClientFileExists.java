@@ -11,9 +11,9 @@ public class ClientFileExists {
                  BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                  BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             ) {
-                out.write("CLIENT\r\n");
+                out.write("CLIENT FILE EXISTS\r\n");
                 out.flush();
-                out.write("EXISTS\r\nHW2\r\nEND\r\n");
+                out.write("EXISTS\r\nHW\r\nEND\r\n");
                 out.flush();
 
                 StringBuilder resString = new StringBuilder();

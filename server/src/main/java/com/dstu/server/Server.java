@@ -60,6 +60,7 @@ public class Server {
                 } else {
                     executor = new ClientExecutor(in, out);
                 }
+                System.out.println(line);
 
                 executor.execute();
 
